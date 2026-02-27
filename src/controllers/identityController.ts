@@ -30,18 +30,18 @@ export const identity = async (req: Request, res: Response) => {
     // ✅ CONDITIONAL SQL — NO undefined EVER
     if (email && phone) {
       matches = await sql<ContactRow[]>`
-        SELECT * FROM contact
+        SELECT * FROM contacts
         WHERE email = ${email}
            OR phone_number = ${phone}
       `;
     } else if (email) {
       matches = await sql<ContactRow[]>`
-        SELECT * FROM contact
+        SELECT * FROM contacts
         WHERE email = ${email}
       `;
     } else if (phone) {
       matches = await sql<ContactRow[]>`
-        SELECT * FROM contact
+        SELECT * FROM contacts
         WHERE phone_number = ${phone}
       `;
     }
@@ -51,7 +51,7 @@ export const identity = async (req: Request, res: Response) => {
     // NO MATCHES → CREATE PRIMARY
     if (matches.length === 0) {
       const [created] = await sql<ContactRow[]>`
-        INSERT INTO contact (email, phone_number, link_precedence)
+        INSERT INTO contacts (email, phone_number, link_precedence)
         VALUES (${email}, ${phone}, 'primary')
         RETURNING *
       `;
@@ -73,7 +73,7 @@ export const identity = async (req: Request, res: Response) => {
 
       if (toMergeIds.length > 0) {
         await sql`
-          UPDATE contact
+          UPDATE contacts
           SET link_precedence = 'secondary',
               linked_id = ${primaryContact.id}
           WHERE id = ANY(${toMergeIds})
@@ -88,14 +88,14 @@ export const identity = async (req: Request, res: Response) => {
 
       if (!emailExists || !phoneExists) {
         await sql`
-          INSERT INTO contact (email, phone_number, linked_id, link_precedence)
+          INSERT INTO contacts (email, phone_number, linked_id, link_precedence)
           VALUES (${email}, ${phone}, ${primaryContact.id}, 'secondary')
         `;
       }
     }
 
     const related = await sql<ContactRow[]>`
-      SELECT * FROM contact
+      SELECT * FROM contacts
       WHERE id = ${primaryContact.id}
          OR linked_id = ${primaryContact.id}
     `;
