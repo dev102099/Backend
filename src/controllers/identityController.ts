@@ -21,13 +21,11 @@ export const identity = async (req: Request, res: Response) => {
       });
     }
 
-    // ✅ NARROW TYPES HERE
     const email: string | null = body.email ?? null;
     const phone: string | null = body.phone_number ?? null;
 
     let matches: ContactRow[] = [];
 
-    // ✅ CONDITIONAL SQL — NO undefined EVER
     if (email && phone) {
       matches = await sql<ContactRow[]>`
         SELECT * FROM contacts
@@ -57,7 +55,6 @@ export const identity = async (req: Request, res: Response) => {
       `;
       primaryContact = created;
     } else {
-      // ✅ TYPE SAFE
       const primaryContacts: ContactRow[] = matches.filter(
         (c) => c.link_precedence === "primary",
       );
